@@ -1,0 +1,229 @@
+local function createHighlightTemplate()
+    local template = Instance.new("Highlight")
+    template.FillColor = Color3.fromRGB(0, 255, 0)
+    template.FillTransparency = 0.5
+    template.OutlineColor = Color3.fromRGB(0, 0, 0)
+    template.OutlineTransparency = 0
+    template.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    return template
+end
+
+local templateHighlight = createHighlightTemplate()
+
+local Rayfield
+local success, errorMessage = pcall(function()
+    Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+end)
+
+if not success then
+    warn("Rayfield load failed: " .. errorMessage)
+    return
+end
+
+local Window = Rayfield:CreateWindow({
+    Name = "Demonology GUI",
+    LoadingTitle = "Loading... please wait",
+    LoadingSubtitle = "by Destroyer00_1",
+    Icon = 129118857922530,
+    ToggleUIKeybind = "K",
+    Theme = "AmberGlow",
+    KeySystem = false,
+})
+
+local Tab1 = Window:CreateTab("Main", 7539983773)
+local Section = Tab1:CreateSection("Section with functions")
+
+local ghostHighlight = nil
+local GhostESP = Tab1:CreateToggle({
+    Name = "Ghost ESP",
+    CurrentValue = false,
+    Flag = "GhostESP",
+    Callback = function(Value)
+        local ghost = workspace:FindFirstChild("Ghost")
+        if not ghost then
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "Ghost not found!",
+                Duration = 3
+            })
+            return
+        end
+        
+        if Value then
+            if not ghostHighlight then
+                ghostHighlight = templateHighlight:Clone()
+                ghostHighlight.Parent = ghost
+            end
+            ghostHighlight.FillColor = Color3.fromRGB(255, 0, 0)
+            ghostHighlight.FillTransparency = 0.5
+            ghostHighlight.OutlineTransparency = 0
+            
+            if ghost:FindFirstChild("ZoneCheckPart") then
+                ghost.ZoneCheckPart.Transparency = 0
+            end
+            if ghost:FindFirstChild("Head") then
+                ghost.Head.Transparency = 0
+            end
+            
+            Rayfield:Notify({
+                Title = "Console",
+                Content = "Ghost ESP ✅",
+                Duration = 3
+            })
+        else
+            if ghostHighlight then
+                ghostHighlight.FillTransparency = 1
+                ghostHighlight.OutlineTransparency = 1
+            end
+            Rayfield:Notify({
+                Title = "Console",
+                Content = "Ghost ESP ❌",
+                Duration = 3
+            })
+        end
+    end,
+})
+local itemHighlights = {}
+local ItemsESP = Tab1:CreateToggle({
+    Name = "Items ESP",
+    CurrentValue = false,
+    Flag = "ItemsESP",
+    Callback = function(Value)
+        local itemsFolder = workspace:FindFirstChild("Items")
+        if not itemsFolder then
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "Items folder not found!",
+                Duration = 3
+            })
+            return
+        end
+        
+        local items = itemsFolder:GetChildren()
+        
+        if Value then
+            for _, item in ipairs(items) do
+                if item and not itemHighlights[item] then
+                    local copyItems = templateHighlight:Clone()
+                    copyItems.Parent = item
+                    itemHighlights[item] = copyItems
+                    copyItems.FillTransparency = 0.5
+                    copyItems.OutlineTransparency = 0
+                elseif itemHighlights[item] then
+                    itemHighlights[item].FillTransparency = 0.5
+                    itemHighlights[item].OutlineTransparency = 0
+                end
+            end
+            Rayfield:Notify({
+                Title = "Console",
+                Content = "Item ESP ✅",
+                Duration = 3
+            })
+        else
+            for _, highlight in pairs(itemHighlights) do
+                highlight.FillTransparency = 1
+                highlight.OutlineTransparency = 1
+            end
+            Rayfield:Notify({
+                Title = "Console",
+                Content = "Item ESP ❌",
+                Duration = 3
+            })
+        end
+    end,
+})
+
+local RemoveDoors = Tab1:CreateButton({
+    Name = "Remove doors",
+    Callback = function()
+        local doors = workspace:FindFirstChild("Doors")
+        if doors then
+            doors:Destroy()
+            Rayfield:Notify({
+                Title = "Console",
+                Content = "Remove doors ✅",
+                Duration = 3
+            })
+        else
+            Rayfield:Notify({
+                Title = "Console",
+                Content = "Doors not found!",
+                Duration = 3
+            })
+        end
+    end,
+})
+
+local FB = Tab1:CreateButton({
+    Name = "Fullbright",
+    Callback = function()
+        local lighting = game:GetService("Lighting")
+        lighting.Ambient = Color3.fromRGB(255, 255, 255)
+        lighting.Brightness = 2
+        lighting.GlobalShadows = false
+        lighting.TimeOfDay = "12:00:00"
+        lighting.FogEnd = 100000
+        
+        local atmosphere = lighting:FindFirstChildWhichIsA("Atmosphere")
+        if atmosphere then
+            atmosphere.Density = 0
+            atmosphere.Haze = 0
+        end
+        
+        Rayfield:Notify({
+            Title = "Console",
+            Content = "Fullbright ✅",
+            Duration = 3
+        })
+    end,
+})
+
+local GhostInfo = Tab1:CreateButton({
+    Name = "Show ghost info",
+    Callback = function()
+        local ghost = workspace:FindFirstChild("Ghost")
+        if not ghost then
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "Ghost not found!",
+                Duration = 3
+            })
+            return
+        end
+        
+        local orb = workspace:FindFirstChild("GhostOrb")
+        local orbReal = "NO"
+        if orb then
+            orbReal = "YES"
+        end
+        
+        local emf5Real = "NO"
+        if ghost:GetAttribute("LastEMFLevel5Time") ~= nil then
+            emf5Real = "YES"
+        end
+        
+        local handReal = "NO"
+        local folder = workspace:FindFirstChild("Handprints")
+        if folder then 
+            local children = folder:GetChildren()
+            if #children > 0 then 
+                handReal = "YES"
+            end
+        end
+        
+        Rayfield:Notify({
+            Title = "Ghost INFO",
+            Content = "Favorite room: " .. ghost:GetAttribute("FavoriteRoom") .. "\nGhost orb: " .. orbReal .. "\nEMF 5 lvl: " .. emf5Real .. "\nHandprints: " .. handReal, 
+            Duration = 10
+        })
+    end,
+})
+
+local player = game.Players.LocalPlayer
+local nickname = player.Name
+
+Rayfield:Notify({
+    Title = "Greeting",
+    Content = "Welcome, " .. nickname,
+    Duration = 3
+})
